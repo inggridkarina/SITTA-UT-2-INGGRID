@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracking Pengiriman - SITTA UT</title>
+  <link rel="stylesheet" href="CSS/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="dashboard-body">
+
+  <div id="app" class="glass-box tracking-container fade-in" v-cloak>
+    <div class="table-header">
+      <a href="dashboard.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali</a>
+      <h2><i class="fas fa-truck-fast"></i> Lacak Pengiriman</h2>
+    </div>
+
+    <div class="search-section">
+      <div class="input-group">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          v-model="inputDoNumber" 
+          @keyup.enter="cariPaket" 
+          placeholder="Masukkan Nomor DO / Resi"
+        >
+      </div>
+      <button @click="cariPaket" class="btn-search">Cari Paket</button>
+    </div>
+
+    <div id="result" v-if="searchTriggered">
+      
+      <div v-if="!foundData" class="error-msg fade-in">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Data DO <b>{{ searchedDoNumber }}</b> tidak ditemukan</p>
+      </div>
+
+      <div v-else class="tracking-content fade-in">
+        <div class="info-grid">
+          <div class="info-card">
+            <small>Penerima</small>
+            <p>{{ foundData.nama }}</p>
+          </div>
+          <div class="info-card">
+            <small>Status</small>
+            <p class="status-badge">{{ foundData.status }}</p>
+          </div>
+          <div class="info-card">
+            <small>Ekspedisi</small>
+            <p>{{ foundData.ekspedisi }}</p>
+          </div>
+          <div class="info-card">
+            <small>Paket</small>
+            <p>{{ foundData.paket }}</p>
+          </div>
+        </div>
+
+        <div class="timeline-container">
+          <h3><i class="fas fa-map-marker-alt"></i> Riwayat Perjalanan</h3>
+          <div class="stepper-vertical">
+            
+            <div 
+              v-for="(item, index) in foundData.perjalanan" 
+              :key="index" 
+              :class="['step-item', index === 0 ? 'step-active' : '']"
+            >
+              <div class="step-dot"></div>
+              <div class="step-content">
+                <span class="step-time">{{ item.waktu }}</span>
+                <p class="step-desc">{{ item.keterangan }}</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          inputDoNumber: '',       // Menampung teks yang sedang diketik user
+          searchedDoNumber: '',    // Menyimpan nomor DO terakhir yang sukses dicari (untuk display error)
+          searchTriggered: false,  // Penanda apakah user sudah menekan tombol cari
+          foundData: null,         // Menampung objek data hasil pencarian
+          trackingDataSource: {}   // Penampung lokal untuk database dari data.js
+        };
+      },
+      mounted() {
+        // Ambil data tracking dari data.js secara adaptif 
+        // Mendukung format objek langsung (dataTracking) maupun jika dibungkus Vue instance lama (app.tracking)
+        if (typeof dataTracking !== 'undefined') {
+          this.trackingDataSource = dataTracking;
+        } else if (typeof app !== 'undefined' && app.tracking) {
+          this.trackingDataSource = app.tracking;
+        } else if (typeof tracking !== 'undefined') {
+          this.trackingDataSource = tracking;
+        }
+      },
+      methods: {
+        cariPaket() {
+          const cleanNoDo = this.inputDoNumber.trim();
+
+          // Validasi input kosong
+          if (cleanNoDo === "") {
+            alert("Nomor DO tidak boleh kosong!");
+            return;
+          }
+
+          // Nyalakan trigger pencarian & amankan nama DO yang dicari
+          this.searchTriggered = true;
+          this.searchedDoNumber = cleanNoDo;
+
+          // Ambil data dari data source berdasarkan key nomor DO
+          const matchedData = this.trackingDataSource[cleanNoDo];
+
+          if (matchedData) {
+            this.foundData = matchedData;
+          } else {
+            this.foundData = null; // Menandakan tidak ditemukan
+          }
+        }
+      }
+    }).mount('#app');
+  </script>
+
+  <style>
+    /* Mencegah kedipan ekspresi mentah {{ }} sebelum Vue selesai memuat */
+    [v-cloak] { display: none; }
+  </style>
+</body>
+</html>

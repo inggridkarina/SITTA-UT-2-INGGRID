@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stok Bahan Ajar - SITTA UT</title>
+  <link rel="stylesheet" href="CSS/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="dashboard-body">
+
+  <div id="app" class="glass-box table-container fade-in">
+    <div class="table-header">
+      <a href="dashboard.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali</a>
+      <h2><i class="fas fa-boxes"></i> Data Stok Bahan Ajar</h2>
+    </div>
+
+   <table>
+  <thead>
+    <tr>
+      <th>Bahan Ajar</th>
+      <th>Nama Modul</th>
+      <th>Jenis</th>
+      <th>Catatan</th>
+      <th>Status Stok</th>
+    </tr>
+  </thead>
+  <tbody>
+    <template v-for="(item, index) in stokList" :key="item.kode">
+      
+      <tr @click="toggleDetail(item.kode)" class="clickable-row">
+        <td><strong>{{ item.kode }}</strong></td>
+        <td>{{ item.judul }}</td>
+        <td><span class="badge-jenis">{{ item.kategori }}</span></td>
+        <td v-html="item.catatanHTML"></td> <td>
+          <div :class="['stok-indicator', item.qty < item.safety ? 'stok-low' : 'stok-safe']">
+             <span class="stok-val">{{ item.qty }}</span>
+             <small v-if="item.qty === 0"> Kosong</small>
+             <small v-else-if="item.qty < item.safety"> Menipis</small>
+             <small v-else> Aman</small>
+          </div>
+        </td>
+      </tr>
+
+      <tr v-if="expandedRow === item.kode" class="detail-row fade-in">
+        <td colspan="5">
+          <div class="detail-box">
+            <h4>Detail Informasi Stok:</h4>
+            <ul>
+              <li><strong>Lokasi UT-Daerah:</strong> {{ item.upbjj }}</li>
+              <li><strong>Lokasi Rak:</strong> {{ item.lokasiRak }}</li>
+              <li><strong>Harga Satuan:</strong> Rp {{ item.harga.toLocaleString('id-ID') }}</li>
+              <li><strong>Batas Safety Stok:</strong> {{ item.safety }} buku</li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+
+    </template>
+  </tbody>
+</table>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/dataBahanAjar.js"></script>
+  
+  <script>
+    // Skrip Inisialisasi Vue 3
+const { createApp } = Vue;
+
+createApp({
+  data() {
+    return {
+      // Ambil dari file dummy js/dataBahanAjar.js
+      stokList: typeof stokData !== 'undefined' ? stokData : [],
+      
+      // State untuk melacak baris mana yang sedang terbuka
+      // Nilai default null berarti semua baris detail tertutup
+      expandedRow: null 
+    };
+  },
+  methods: {
+    toggleDetail(kode) {
+      // Jika baris yang diklik sudah terbuka, maka tutup (kembalikan ke null)
+      if (this.expandedRow === kode) {
+        this.expandedRow = null;
+      } else {
+        // Jika belum, buka baris detail sesuai kode bahan ajar yang diklik
+        this.expandedRow = kode;
+      }
+    }
+  }
+}).mount('#app');
+  </script>
+</body>
+</html>
